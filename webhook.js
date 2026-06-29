@@ -18,7 +18,7 @@ app.get('/payment/success', (req, res) => {
     const amount = req.query.amount || req.query.amt || '';
     
     // বট রেফারেল লিংক তৈরি
-    const botLink = `https://t.me/Paid_LK_bot?start=${reference}`;
+    const botLink = `https://t.me/FFX_LIKEBD_BOT?start=${reference}`;
     
     console.log('✅ Payment Success (GET):', paymentKey);
     console.log('🔗 Reference:', reference);
