@@ -10,11 +10,20 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Payment Success Page - GET & POST
+// ==================== PAYMENT SUCCESS - GET ====================
 app.get('/payment/success', (req, res) => {
     const paymentKey = req.query.paymentkey || req.query.payment_key || req.query.key;
+    const reference = req.query.reference || req.query.ref || '';
+    const user_id = req.query.user_id || req.query.uid || '';
+    const amount = req.query.amount || req.query.amt || '';
+    
+    // বট রেফারেল লিংক তৈরি
+    const botLink = `https://t.me/FFX_LIKEBD_BOT?start=${reference}`;
+    
     console.log('✅ Payment Success (GET):', paymentKey);
-    console.log('Full Query:', req.query);
+    console.log('🔗 Reference:', reference);
+    console.log('👤 User:', user_id);
+    console.log('💰 Amount:', amount);
     
     res.send(`
     <!DOCTYPE html>
@@ -22,7 +31,7 @@ app.get('/payment/success', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Payment Successful</title>
+        <title>Payment Successful - ৳${amount}</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
@@ -33,6 +42,10 @@ app.get('/payment/success', (req, res) => {
                 justify-content: center;
                 align-items: center;
                 color: #fff;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
             }
             .container {
                 background: rgba(255,255,255,0.05);
@@ -68,6 +81,14 @@ app.get('/payment/success', (req, res) => {
                 background: linear-gradient(135deg, #00ff88, #00cc6a);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
+            }
+            .amount-display {
+                font-size: 42px;
+                font-weight: 800;
+                background: linear-gradient(135deg, #FFD700, #FFA500);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin: 15px 0;
             }
             .subtitle {
                 color: #aaa;
@@ -80,6 +101,10 @@ app.get('/payment/success', (req, res) => {
                 padding: 20px;
                 margin-bottom: 20px;
                 text-align: left;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
             }
             .info-row {
                 display: flex;
@@ -87,18 +112,17 @@ app.get('/payment/success', (req, res) => {
                 padding: 10px 0;
                 border-bottom: 1px solid rgba(255,255,255,0.05);
             }
-            .info-row:last-child {
-                border-bottom: none;
-            }
-            .info-label {
-                color: #888;
-                font-size: 13px;
-            }
-            .info-value {
-                color: #fff;
-                font-weight: 600;
-                font-size: 13px;
+            .info-row:last-child { border-bottom: none; }
+            .info-label { color: #888; font-size: 13px; }
+            .info-value { 
+                color: #fff; 
+                font-weight: 600; 
+                font-size: 13px; 
                 word-break: break-all;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
             }
             .status-badge {
                 display: inline-block;
@@ -110,21 +134,60 @@ app.get('/payment/success', (req, res) => {
                 font-weight: 600;
                 margin-bottom: 20px;
             }
-            .close-btn {
+            .claim-btn {
                 display: inline-block;
-                background: linear-gradient(135deg, #ff6b35, #ff4500);
-                color: #fff;
-                padding: 12px 30px;
+                background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+                color: #000;
+                padding: 15px 40px;
                 border-radius: 25px;
                 text-decoration: none;
-                font-weight: 600;
+                font-weight: 700;
+                font-size: 18px;
                 transition: all 0.3s;
                 border: none;
                 cursor: pointer;
+                animation: pulse 2s infinite;
+                position: relative;
+                overflow: hidden;
+                -webkit-tap-highlight-color: transparent;
             }
-            .close-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(255,107,53,0.3);
+            .claim-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 30px rgba(0,255,136,0.3);
+            }
+            .claim-btn:active {
+                transform: scale(0.95);
+            }
+            .claim-btn::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+                animation: shimmer 2s infinite;
+            }
+            .auto-redirect {
+                color: #666;
+                margin-top: 20px;
+                font-size: 12px;
+                animation: fadeIn 0.5s ease 0.5s both;
+            }
+            .countdown {
+                color: #00ff88;
+                font-weight: 600;
+            }
+            .protected-text {
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                -webkit-touch-callout: none;
+            }
+            .no-copy {
+                pointer-events: auto;
+                -webkit-touch-callout: none;
             }
             @keyframes scaleIn {
                 from { transform: scale(0); }
@@ -134,9 +197,22 @@ app.get('/payment/success', (req, res) => {
                 from { stroke-dashoffset: 50; }
                 to { stroke-dashoffset: 0; }
             }
+            @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(0,255,136,0.4); }
+                70% { box-shadow: 0 0 0 20px rgba(0,255,136,0); }
+                100% { box-shadow: 0 0 0 0 rgba(0,255,136,0); }
+            }
+            @keyframes shimmer {
+                0% { left: -100%; }
+                100% { left: 100%; }
+            }
             @keyframes fadeInUp {
                 from { opacity: 0; transform: translateY(20px); }
                 to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
             }
             .animated { animation: fadeInUp 0.6s ease both; }
             .delay-1 { animation-delay: 0.2s; }
@@ -144,22 +220,29 @@ app.get('/payment/success', (req, res) => {
             .delay-3 { animation-delay: 0.6s; }
         </style>
     </head>
-    <body>
-        <div class="container">
+    <body oncontextmenu="return false;" ondragstart="return false;" onselectstart="return false;">
+        <div class="container no-copy">
             <div class="checkmark">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
             </div>
             
-            <div class="status-badge animated">✅ Transaction Verified</div>
+            <div class="status-badge animated">✅ Payment Verified</div>
             <h1 class="title animated delay-1">Payment Successful!</h1>
-            <p class="subtitle animated delay-1">Your payment has been processed successfully</p>
+            
+            <div class="amount-display animated delay-1">৳${amount}</div>
+            
+            <p class="subtitle animated delay-1 protected-text">Amount has been added to your balance</p>
             
             <div class="info-box animated delay-2">
                 <div class="info-row">
-                    <span class="info-label">🔑 Payment Key</span>
-                    <span class="info-value">${paymentKey || 'N/A'}</span>
+                    <span class="info-label">🔑 Payment ID</span>
+                    <span class="info-value">${paymentKey ? paymentKey.substring(0, 16) + '...' : 'N/A'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">👤 User ID</span>
+                    <span class="info-value">${user_id}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">📅 Date</span>
@@ -171,24 +254,117 @@ app.get('/payment/success', (req, res) => {
                 </div>
                 <div class="info-row">
                     <span class="info-label">🌐 Status</span>
-                    <span class="info-value" style="color: #00ff88;">Completed</span>
+                    <span class="info-value" style="color: #00ff88;">✅ Completed</span>
                 </div>
             </div>
             
-            <p class="subtitle animated delay-3" style="font-size: 12px; margin-bottom: 15px;">
-                🎉 Your balance will be added automatically within 30 seconds
-            </p>
+            <a href="${botLink}" class="claim-btn animated delay-3 no-copy" id="claimBtn">
+                🎉 CLAIM BALANCE
+            </a>
             
-            <a href="https://t.me/FFX_LIKEBD_BOT" class="close-btn animated delay-3">Return to Bot</a>
+            <p class="auto-redirect protected-text">
+                Auto redirecting in <span class="countdown" id="countdown">3</span> seconds...
+            </p>
         </div>
+        
+        <script>
+            // Right-click disable
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Keyboard shortcuts disable (Ctrl+C, Ctrl+U, etc)
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's' || e.key === 'a')) {
+                    e.preventDefault();
+                    return false;
+                }
+                if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+            
+            // Copy disable
+            document.addEventListener('copy', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Cut disable
+            document.addEventListener('cut', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Claim button click tracking
+            document.getElementById('claimBtn').addEventListener('click', function(e) {
+                console.log('✅ Claim button clicked - Redirecting to bot');
+                // Short vibration feedback for mobile
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            });
+            
+            // Auto redirect countdown
+            let countdown = 3;
+            const countdownEl = document.getElementById('countdown');
+            const botLink = '${botLink}';
+            
+            const countdownInterval = setInterval(function() {
+                countdown--;
+                countdownEl.textContent = countdown;
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    console.log('🔄 Auto redirecting to bot...');
+                    window.location.href = botLink;
+                }
+            }, 1000);
+            
+            // Touch & hold disable
+            document.addEventListener('touchstart', function(e) {
+                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+                    return true;
+                }
+            });
+            
+            // Prevent long press
+            let longPressTimer;
+            document.addEventListener('touchstart', function(e) {
+                longPressTimer = setTimeout(function() {
+                    e.preventDefault();
+                }, 500);
+            });
+            
+            document.addEventListener('touchend', function() {
+                clearTimeout(longPressTimer);
+            });
+            
+            document.addEventListener('touchmove', function() {
+                clearTimeout(longPressTimer);
+            });
+            
+            console.log('🔒 Security enabled - Copy & Right-click disabled');
+            console.log('⏰ Auto redirect in 3 seconds');
+        </script>
     </body>
     </html>
     `);
 });
 
+// ==================== PAYMENT SUCCESS - POST ====================
 app.post('/payment/success', (req, res) => {
     console.log('✅ Payment Success (POST):', JSON.stringify(req.body, null, 2));
+    
     const paymentKey = req.body.paymentkey || req.body.payment_key || req.body.key;
+    const metadata = req.body.metadata || {};
+    const reference = metadata.reference || req.body.reference || '';
+    const user_id = metadata.user_id || req.body.user_id || '';
+    const amount = metadata.amount || req.body.amount || '';
+    
+    const botLink = `https://t.me/FFX_LIKEBD_BOT?start=${reference}`;
     
     res.send(`
     <!DOCTYPE html>
@@ -207,6 +383,8 @@ app.post('/payment/success', (req, res) => {
                 justify-content: center;
                 align-items: center;
                 color: #fff;
+                -webkit-user-select: none;
+                user-select: none;
             }
             .container {
                 background: rgba(255,255,255,0.05);
@@ -230,10 +408,14 @@ app.post('/payment/success', (req, res) => {
                 margin: 0 auto 25px;
                 animation: scaleIn 0.5s ease;
             }
-            .checkmark svg {
-                width: 40px;
-                height: 40px;
-                animation: drawCheck 0.5s ease 0.3s both;
+            .checkmark svg { width: 40px; height: 40px; }
+            .amount-display {
+                font-size: 42px;
+                font-weight: 800;
+                background: linear-gradient(135deg, #FFD700, #FFA500);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin: 15px 0;
             }
             .title {
                 font-size: 28px;
@@ -244,22 +426,6 @@ app.post('/payment/success', (req, res) => {
                 -webkit-text-fill-color: transparent;
             }
             .subtitle { color: #aaa; margin-bottom: 25px; font-size: 14px; }
-            .info-box {
-                background: rgba(255,255,255,0.05);
-                border-radius: 12px;
-                padding: 20px;
-                margin-bottom: 20px;
-                text-align: left;
-            }
-            .info-row {
-                display: flex;
-                justify-content: space-between;
-                padding: 10px 0;
-                border-bottom: 1px solid rgba(255,255,255,0.05);
-            }
-            .info-row:last-child { border-bottom: none; }
-            .info-label { color: #888; font-size: 13px; }
-            .info-value { color: #fff; font-weight: 600; font-size: 13px; word-break: break-all; }
             .status-badge {
                 display: inline-block;
                 background: rgba(0,255,136,0.15);
@@ -270,77 +436,74 @@ app.post('/payment/success', (req, res) => {
                 font-weight: 600;
                 margin-bottom: 20px;
             }
-            .close-btn {
+            .claim-btn {
                 display: inline-block;
-                background: linear-gradient(135deg, #ff6b35, #ff4500);
-                color: #fff;
-                padding: 12px 30px;
+                background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
+                color: #000;
+                padding: 15px 40px;
                 border-radius: 25px;
                 text-decoration: none;
-                font-weight: 600;
+                font-weight: 700;
+                font-size: 18px;
                 transition: all 0.3s;
+                animation: pulse 2s infinite;
             }
-            .close-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(255,107,53,0.3);
+            .claim-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 15px 30px rgba(0,255,136,0.3);
             }
+            .auto-redirect { color: #666; margin-top: 20px; font-size: 12px; }
+            .countdown { color: #00ff88; font-weight: 600; }
             @keyframes scaleIn {
                 from { transform: scale(0); }
                 to { transform: scale(1); }
             }
-            @keyframes drawCheck {
-                from { stroke-dashoffset: 50; }
-                to { stroke-dashoffset: 0; }
+            @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(0,255,136,0.4); }
+                70% { box-shadow: 0 0 0 20px rgba(0,255,136,0); }
+                100% { box-shadow: 0 0 0 0 rgba(0,255,136,0); }
             }
-            @keyframes fadeInUp {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            .animated { animation: fadeInUp 0.6s ease both; }
-            .delay-1 { animation-delay: 0.2s; }
-            .delay-2 { animation-delay: 0.4s; }
-            .delay-3 { animation-delay: 0.6s; }
         </style>
     </head>
-    <body>
+    <body oncontextmenu="return false;">
         <div class="container">
             <div class="checkmark">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
             </div>
-            <div class="status-badge animated">✅ Transaction Verified</div>
-            <h1 class="title animated delay-1">Payment Successful!</h1>
-            <p class="subtitle animated delay-1">Your payment has been processed successfully</p>
-            <div class="info-box animated delay-2">
-                <div class="info-row">
-                    <span class="info-label">🔑 Payment Key</span>
-                    <span class="info-value">${paymentKey || 'N/A'}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">📅 Date</span>
-                    <span class="info-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">⏰ Time</span>
-                    <span class="info-value">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">🌐 Status</span>
-                    <span class="info-value" style="color: #00ff88;">Completed</span>
-                </div>
-            </div>
-            <p class="subtitle animated delay-3" style="font-size: 12px; margin-bottom: 15px;">🎉 Your balance will be added automatically within 30 seconds</p>
-            <a href="https://t.me/FFX_LIKEBD_BOT" class="close-btn animated delay-3">Return to Bot</a>
+            <div class="status-badge">✅ Transaction Verified</div>
+            <h1 class="title">Payment Successful!</h1>
+            <div class="amount-display">৳${amount}</div>
+            <p class="subtitle">Your balance has been added</p>
+            <a href="${botLink}" class="claim-btn">🎉 CLAIM BALANCE</a>
+            <p class="auto-redirect">Auto redirect in <span class="countdown" id="countdown">3</span> seconds...</p>
         </div>
+        
+        <script>
+            document.addEventListener('contextmenu', e => e.preventDefault());
+            document.addEventListener('copy', e => e.preventDefault());
+            document.addEventListener('cut', e => e.preventDefault());
+            
+            let countdown = 3;
+            const countdownEl = document.getElementById('countdown');
+            
+            setInterval(() => {
+                countdown--;
+                if (countdownEl) countdownEl.textContent = countdown;
+                if (countdown <= 0) {
+                    window.location.href = '${botLink}';
+                }
+            }, 1000);
+        </script>
     </body>
     </html>
     `);
 });
 
-// Payment Cancel Page
+// ==================== PAYMENT CANCEL ====================
 app.get('/payment/cancel', (req, res) => {
-    console.log('❌ Payment Cancelled');
+    console.log('❌ Payment Cancelled (GET)');
     
     res.send(`
     <!DOCTYPE html>
@@ -359,6 +522,8 @@ app.get('/payment/cancel', (req, res) => {
                 justify-content: center;
                 align-items: center;
                 color: #fff;
+                -webkit-user-select: none;
+                user-select: none;
             }
             .container {
                 background: rgba(255,255,255,0.05);
@@ -382,10 +547,7 @@ app.get('/payment/cancel', (req, res) => {
                 margin: 0 auto 25px;
                 animation: scaleIn 0.5s ease;
             }
-            .cancel-icon svg {
-                width: 40px;
-                height: 40px;
-            }
+            .cancel-icon svg { width: 40px; height: 40px; }
             .title {
                 font-size: 28px;
                 font-weight: 700;
@@ -395,22 +557,6 @@ app.get('/payment/cancel', (req, res) => {
                 -webkit-text-fill-color: transparent;
             }
             .subtitle { color: #aaa; margin-bottom: 25px; font-size: 14px; }
-            .info-box {
-                background: rgba(255,255,255,0.05);
-                border-radius: 12px;
-                padding: 20px;
-                margin-bottom: 20px;
-                text-align: left;
-            }
-            .info-row {
-                display: flex;
-                justify-content: space-between;
-                padding: 10px 0;
-                border-bottom: 1px solid rgba(255,255,255,0.05);
-            }
-            .info-row:last-child { border-bottom: none; }
-            .info-label { color: #888; font-size: 13px; }
-            .info-value { color: #fff; font-weight: 600; font-size: 13px; }
             .status-badge {
                 display: inline-block;
                 background: rgba(255,71,87,0.15);
@@ -421,9 +567,9 @@ app.get('/payment/cancel', (req, res) => {
                 font-weight: 600;
                 margin-bottom: 20px;
             }
-            .close-btn {
+            .bot-btn {
                 display: inline-block;
-                background: linear-gradient(135deg, #ff6b35, #ff4500);
+                background: linear-gradient(135deg, #0088cc, #006699);
                 color: #fff;
                 padding: 12px 30px;
                 border-radius: 25px;
@@ -431,25 +577,17 @@ app.get('/payment/cancel', (req, res) => {
                 font-weight: 600;
                 transition: all 0.3s;
             }
-            .close-btn:hover {
+            .bot-btn:hover {
                 transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(255,107,53,0.3);
+                box-shadow: 0 10px 20px rgba(0,136,204,0.3);
             }
             @keyframes scaleIn {
                 from { transform: scale(0); }
                 to { transform: scale(1); }
             }
-            @keyframes fadeInUp {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            .animated { animation: fadeInUp 0.6s ease both; }
-            .delay-1 { animation-delay: 0.2s; }
-            .delay-2 { animation-delay: 0.4s; }
-            .delay-3 { animation-delay: 0.6s; }
         </style>
     </head>
-    <body>
+    <body oncontextmenu="return false;">
         <div class="container">
             <div class="cancel-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -457,29 +595,10 @@ app.get('/payment/cancel', (req, res) => {
                     <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </div>
-            
-            <div class="status-badge animated">❌ Order Cancelled</div>
-            <h1 class="title animated delay-1">Payment Cancelled</h1>
-            <p class="subtitle animated delay-1">Your payment has been cancelled. No charges were made.</p>
-            
-            <div class="info-box animated delay-2">
-                <div class="info-row">
-                    <span class="info-label">📅 Date</span>
-                    <span class="info-value">${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">⏰ Time</span>
-                    <span class="info-value">${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">🌐 Status</span>
-                    <span class="info-value" style="color: #ff4757;">Cancelled</span>
-                </div>
-            </div>
-            
-            <p class="subtitle animated delay-3" style="font-size: 12px; margin-bottom: 15px;">💡 You can try again anytime</p>
-            
-            <a href="https://t.me/FFX_LIKEBD_BOT" class="close-btn animated delay-3">Return to Bot</a>
+            <div class="status-badge">❌ Order Cancelled</div>
+            <h1 class="title">Payment Cancelled</h1>
+            <p class="subtitle">No charges were made. You can try again anytime.</p>
+            <a href="https://t.me/FFX_LIKEBD_BOT" class="bot-btn">🤖 Return to Bot</a>
         </div>
     </body>
     </html>
@@ -488,7 +607,7 @@ app.get('/payment/cancel', (req, res) => {
 
 app.post('/payment/cancel', (req, res) => {
     console.log('❌ Payment Cancelled (POST)');
-    res.send('<h1>Payment Cancelled</h1><p>Return to bot to try again.</p>');
+    res.json({ status: 'cancelled' });
 });
 
 // Root
@@ -512,6 +631,5 @@ app.get('/', (req, res) => {
     `);
 });
 
-// ✅ শুধু এই লাইনটা চেঞ্জ করা
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`✅ Webhook running on port ${PORT}`));
